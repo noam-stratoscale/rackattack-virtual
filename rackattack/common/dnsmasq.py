@@ -1,3 +1,4 @@
+from rackattack.common import fileutils
 import logging
 import subprocess
 import tempfile
@@ -79,6 +80,14 @@ class DNSMasq(threading.Thread):
     def add(self, mac, ip):
         self._nodesMACIPPairs.append((mac, ip))
         self._writeHostsFile()
+        os.kill(self._popen.pid, signal.SIGHUP)
+
+    def ignorePXEforSpecificMac(self, mac):
+        fileutils.replaceRegexInFile(self._hostsFile.name, mac, mac + "," + "ignore")
+        os.kill(self._popen.pid, signal.SIGHUP)
+
+    def removeIgnorePXEforSpecificMac(self, mac):
+        fileutils.replaceRegexInFile(self._hostsFile.name, mac + "," + "ignore", mac)
         os.kill(self._popen.pid, signal.SIGHUP)
 
     def _writeHostsFile(self):
